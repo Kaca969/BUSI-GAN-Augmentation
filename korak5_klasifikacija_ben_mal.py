@@ -16,10 +16,6 @@ from torchvision import transforms
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 
-
-# =========================
-# PODESAVANJA
-# =========================
 @dataclass
 class Konfig:
     root: str = "Dataset_BUSI_with_GT"
@@ -42,10 +38,6 @@ CFG = Konfig()
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device:", DEVICE)
 
-
-# =========================
-# POMOCNE
-# =========================
 def set_seed(seed: int):
     random.seed(seed)
     np.random.seed(seed)
@@ -69,10 +61,6 @@ def nadji_slike_2klase(root: str, klase: Tuple[str, str]) -> List[Tuple[str, int
             uzorci.append((os.path.join(folder, f), mapa[k]))
     return uzorci
 
-
-# =========================
-# DATASETI
-# =========================
 class RealDataset(Dataset):
     def __init__(self, samples: List[Tuple[str, int]], transform):
         self.samples = samples
@@ -99,10 +87,6 @@ class TensorDatasetSimple(Dataset):
     def __getitem__(self, idx):
         return self.xs[idx], self.ys[idx]
 
-
-# =========================
-# KLASIFIKATOR
-# =========================
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -123,10 +107,6 @@ class SimpleCNN(nn.Module):
         x = self.features(x)
         return self.classifier(x)
 
-
-# =========================
-# GAN GENERATOR (3-klasni, koristi samo y=0 i y=1)
-# =========================
 class Generator3(nn.Module):
     def __init__(self, latent_dim=128, broj_klasa=3):
         super().__init__()
@@ -190,10 +170,6 @@ def generisi_sintetiku(G: Generator3, latent: int, po_klasi: int) -> Tuple[torch
     ys = torch.cat(ys_all, dim=0)
     return xs, ys
 
-
-# =========================
-# TRENING / EVAL
-# =========================
 def train_one(model, loader, opt, loss_fn):
     model.train()
     total_loss = 0.0
@@ -304,14 +280,8 @@ def main():
 
     print(f"Real counts: train={len(train_real)} val={len(val_ds)} test={len(test_ds)}")
 
-    # =========================
-    # EXP 1: REAL ONLY
-    # =========================
     acc_real = run_experiment(train_real, val_ds, test_ds, tag="REAL_ONLY")
 
-    # =========================
-    # EXP 2: REAL + SYNTH
-    # =========================
     if not os.path.isfile(CFG.gan_ckpt):
         raise RuntimeError(f"Ne nalazim GAN checkpoint: {CFG.gan_ckpt}")
 

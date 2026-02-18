@@ -9,10 +9,6 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from torchvision.utils import save_image
 
-
-# =========================
-# PODESAVANJA
-# =========================
 ROOT = "Dataset_BUSI_with_GT"
 IZLAZ_DIR = "izlaz_gan"
 os.makedirs(IZLAZ_DIR, exist_ok=True)
@@ -35,10 +31,6 @@ NOISE_STD = 0.03    # mali šum na real slike
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device:", DEVICE)
 
-
-# =========================
-# DATASET
-# =========================
 transform = transforms.Compose([
     transforms.Resize((IMG, IMG)),
     transforms.ToTensor(),
@@ -72,10 +64,6 @@ class BUSIDataset(Dataset):
         img = self.transform(img)
         return img, label
 
-
-# =========================
-# MODELI (cGAN)
-# =========================
 class Generator(nn.Module):
     def __init__(self, latent_dim=128, broj_klasa=3):
         super().__init__()
@@ -114,15 +102,7 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    """
-    cGAN diskriminator:
-    ulaz: slika (B,1,H,W) + label mapa (B,cond_ch,H,W)
-    izlaz: logit (B,1)
 
-    Ispravka:
-    - nema embedding 128*128
-    - nema hardkodovanih dimenzija (radi i za IMG != 128)
-    """
     def __init__(self, broj_klasa=3, cond_ch=32):
         super().__init__()
         self.cond_ch = cond_ch
@@ -160,10 +140,6 @@ class Discriminator(nn.Module):
         x = self.net(x)
         return self.fc(x)
 
-
-# =========================
-# PREVIEW
-# =========================
 def sacuvaj_preview(G, epoha):
     G.eval()
     with torch.no_grad():
@@ -173,10 +149,6 @@ def sacuvaj_preview(G, epoha):
             fake = G(z, y)
             save_image((fake + 1) / 2, os.path.join(IZLAZ_DIR, f"{naziv}_epoha_{epoha:03d}.png"), nrow=8)
 
-
-# =========================
-# TRENING
-# =========================
 def main():
     ds = BUSIDataset(ROOT, transform)
 
@@ -200,9 +172,6 @@ def main():
             y = y.to(DEVICE)
             b = real.size(0)
 
-            # =====================
-            # D update
-            # =====================
             optD.zero_grad()
 
             lbl_real_D = torch.full((b, 1), REAL_LABEL_D, device=DEVICE)
@@ -224,9 +193,6 @@ def main():
             lossD.backward()
             optD.step()
 
-            # =====================
-            # G update
-            # =====================
             optG.zero_grad()
             lbl_real_G = torch.ones((b, 1), device=DEVICE)  # cilj = 1.0
             out_fake2 = D(fake, y)
